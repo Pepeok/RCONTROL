@@ -1,0 +1,157 @@
+<table align="center" width="90%" border="1" cellspacing="0" cellpadding="0">
+  <tr bgcolor="#999999">
+    <th colspan="8" scope="col">TOTALES POR DEPARTAMENTO</th>
+  </tr>
+  <tr bgcolor="#999999">
+    <th width="10%" scope="col">DEPTO</th>
+    <th width="10%" scope="col">LS</th>
+    <th width="10%" scope="col">TOTAL HORAS</th>
+    <th width="10%" scope="col">TOTAL HORAS FRACCIÓN</th>
+    <th width="10%" scope="col">PRECIO UNIT(UF)</th>
+    <th width="15%" scope="col">TOTAL LINEA (UF)</th>
+    <th width="15%" scope="col">TOTAL LINEA (CLP)</th>
+    <th width="15%" scope="col">TOTAL LINEA (CLP)</th>
+  </tr>
+  <?  
+	mysql_select_db("rcontrol")or die("No se pudo conectar a BD rcontrol");
+	$query6=" SELECT DISTINCT a.id_dpto_asignado, d.nombre_dpto ";
+	$query6.=" FROM funcionario f, marcaciones m, ldserv l, dpto d , asignado a ";
+	$query6.=" WHERE f.rut_func = m.rut_marca ";
+	$query6.=" AND f.id_func = a.id_funcionario_asignado ";
+        $query6.=" AND id_dpto = a.id_dpto_asignado ";
+        $query6.=" AND f.id_emp_func =".$empresa." ";
+        $query6.=" AND a.estado_asignado =" . $pgc . " ";
+	$query6.=" AND m.fecha_marca >= a.fecha_asignado ";
+	$query6.=" AND m.fecha_marca <= a.fecha_fin_asignado ";
+	$query6.=" AND m.fecha_marca>=".$fecha_ini_consulta." ";
+	$query6.=" AND m.fecha_marca<=".$fecha_fin_consulta." ";
+	$query6.=" AND m.cod_marca =0 ";
+	$query6.=" AND ( m.control_marca<=2 or m.control_marca =5 )";
+	$query6.=" GROUP BY a.id_dpto_asignado ; ";
+	//echo $query6; //QUERY QUE ME TRAE LOS DEPARTAMENTOS.
+	$result6=mysql_query($query6)or die("error =".mysql_error());
+	$num6=mysql_num_rows($result6);
+	$num_filas6=$num6;
+ 	while($fila6=mysql_fetch_array($result6))
+    {
+    $id_dpto_func=$fila6["id_dpto_asignado"];
+    $nombre_dpto=$fila6["nombre_dpto"];
+     ?>
+  <tr>
+    <th scope="col"><?php echo $nombre_dpto; ?></th>
+    <th colspan="6" scope="col"> <table  class="tabla_bordes" width="100%" border="1" style="border-bottom:none;" cellspacing="0" cellpadding="0">
+        <? 
+				$query3=  " SELECT f.rut_func, l.precio_uf_ldserv, l.id_ldserv, l.perfil_ldserv, l.sigla_ldserv, COUNT( DISTINCT f.rut_func ) AS prof ";
+				$query3.= " FROM funcionario f, marcaciones m, ldserv l , asignado a ";
+				$query3.= " WHERE f.rut_func = m.rut_marca ";
+				$query3.="  AND f.id_func = a.id_funcionario_asignado ";
+				$query3.= " AND f.id_ldserv_func = l.id_ldserv ";
+				$query3.= " AND f.estado_func =".$pgc." ";
+                                $query3.=" AND a.estado_asignado =" . $pgc . " ";
+                                $query3.= " AND m.cod_marca =0 ";
+				$query3.="  AND ( m.control_marca<=2 or m.control_marca =5 )";
+				$query3.="  AND m.fecha_marca >=  a.fecha_asignado  ";
+				$query3.="  AND m.fecha_marca<=a.fecha_fin_asignado ";
+				$query3.= " AND m.fecha_marca>=".$fecha_ini_consulta." ";
+				$query3.= " AND m.fecha_marca<=".$fecha_fin_consulta." ";
+				$query3.= " AND f.id_emp_func =".$empresa." ";
+				$query3.= " AND a.id_dpto_asignado =".$id_dpto_func." ";
+				$query3.= " GROUP BY l.id_ldserv;	";
+				"query 3". $query3; // Query que me tra las lineas de servicio que tiene el departamento
+				$result3=mysql_query($query3)or die("error =".mysql_error());
+				$num3=mysql_num_rows($result3);
+				$num_filas3=$num3;
+				//por cada uno de los registros sumo el total y lo muestro al final 
+				$horatotal=0;
+				$total_ld_dpto=0;  
+				$sumando=0;
+				while($fila3=mysql_fetch_array($result3))
+				{
+					$id_ldserv=$fila3["id_ldserv"];
+					$sigla_ldserv=$fila3["sigla_ldserv"];
+					$perfil_ldserv=$fila3["perfil_ldserv"];
+					$prof=$fila3["prof"];
+					$precio_uf_ldserv=$fila3["precio_uf_ldserv"];
+				?>
+	<tr align="center">
+	  <td width="14.15%" height="26"><?php echo $sigla_ldserv ?></td>
+          <? 
+			$query8=" SELECT  m.fecha_marca, m.hora_in_marca, m.hora_out_marca, ";
+			$query8.=" m.hora_colacion_func";
+			$query8.=" FROM funcionario f, marcaciones m, ldserv l, asignado a ";
+			$query8.=" WHERE f.rut_func = m.rut_marca ";
+			$query8.="  AND f.id_func = a.id_funcionario_asignado ";
+			$query8.=" AND f.id_ldserv_func = l.id_ldserv ";
+			$query8.=" AND f.estado_func =".$pgc." ";
+                        $query8.=" AND a.estado_asignado =" . $pgc . " ";
+			$query8.=" AND m.cod_marca =0 ";
+			$query8.=" AND (m.control_marca<=2 or m.control_marca =5) ";
+			$query8.="  AND m.fecha_marca >=  a.fecha_asignado  ";
+			$query8.="  AND m.fecha_marca<=a.fecha_fin_asignado ";
+			$query8.=" AND m.fecha_marca>=".$fecha_ini_consulta." ";
+			$query8.=" AND m.fecha_marca<=".$fecha_fin_consulta." ";
+			$query8.=" AND f.id_emp_func =".$empresa." ";
+			$query8.=" AND f.id_ldserv_func =".$id_ldserv." ";
+			$query8.=" AND a.id_dpto_asignado =".$id_dpto_func." ";
+			$query8.=" ORDER BY f.rut_func, m.fecha_marca ;"; 
+			//echo "query8".$query8; // query que me trae todas las horas  x linea de servicio
+			$result8=mysql_query($query8)or die("error =".mysql_error());
+			$num8=mysql_num_rows($result8);
+			$num_filas8=$num8;
+			//por cada uno de los registros sumo el total y lo muestro al final 			
+			$horatotal=0;
+			while($fila8=mysql_fetch_array($result8))
+			{
+				$fecha_marca=$fila8["fecha_marca"];
+				$hora_in_marca=$fila8["hora_in_marca"];
+				$hora_out_marca=$fila8["hora_out_marca"];
+				$hora_colacion_func=$fila8["hora_colacion_func"];
+				$perfil_ldserv=$fila8["perfil_ldserv"];
+				
+				//calculo de HH
+				$diferencia=resta2($hora_in_marca,$hora_out_marca);//horas del día
+				$hhfacturable=almuerzo2($diferencia,$hora_colacion_func);// le resto la hora de colacion
+				$horatotal = sumahoras2($hhfacturable,$horatotal);//horas facturables
+				//$horatotal2=sumahoras3($diferencia,$hhfacturable,$horatotal);
+				//fin del ciclo que me suma todas las horas
+			}
+			?>
+          <td width="14.35%"><? echo  $horatotal ; //echo  $horatotal2 ; ?></td>
+          <? //convierto la hora en Fraccion 
+		  $hora_total_fraccion=horafraccion($horatotal); 
+		  //$hora_total_fraccion=horafraccion($horatotal2); 
+		  //Muestro la hora fraccion  ?>
+          <td width="14.40%"><?php echo $hora_total_fraccion; ?></td>
+<!-- muestro el valor de la UF segun la Linea y el TDR-->
+          <td width="14.40%" ><?php echo $precio_uf_ldserv ?></td>
+          <?  
+		 $total_uf_lds=$hora_total_fraccion*$precio_uf_ldserv; 
+		 $total_uf_lds=(round($total_uf_lds,4));
+         ?>
+          <td width="21.50%" ><?php echo $total_uf_lds; ?></td>
+		  
+          <? //$total_clp=($hora_total_fraccion*$valoruf_oc_contrato*$precio_uf_ldserv); 
+		  		$total_clp=$total_uf_lds*$valoruf_oc_contrato;
+		   	 list($total_clp_mostrar)=colocapunto(round($total_clp,0));
+					//$total_clp=$hora_frac_mes*$valoruf_oc_contrato*$precio_uf_ldserv;
+					/*$decimales = explode(".",$total_clp);//nuevo
+					if (substr($decimales[1],0,4)< 6000 ) {//nuevo
+						list($total_clp_mostrar1)=colocapunto(floor($total_clp)); //nuevo
+						echo "<td>".$total_clp_mostrar1."</td>";
+					}else{ //nuevo
+						list($total_clp_mostrar)=colocapunto(round($total_clp,0)); 
+						echo "<td>".$total_clp_mostrar."</td>"; } */?>
+
+         <td ><? echo $total_clp_mostrar; ?></td>
+        </tr>
+        <?   //$sumando=($sumando+$total_clp+total_clp1);
+			$sumando=($sumando+$total_clp);
+			 $reg++;
+			 }
+         ?>
+      </table></th>
+    <? list($sumando_mostrar)=colocapunto(round($sumando,0));  ?>
+    <td align="center" width="17.65%"><strong><? echo $sumando_mostrar; ?></strong></td>
+  </tr>
+  <? } // fin del ciclo que me lista los departamentos 	?>
+</table>
